@@ -10,6 +10,7 @@ class Company extends Model
 {
     use HasFactory,HasUuids;
     protected $guarded = [];
+    protected $table = 'pos_companies';
 
     public function group()
     {

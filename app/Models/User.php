@@ -21,7 +21,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $guarded = [];
-    
+
     protected $table = 'pos_users';
 
     /**
@@ -51,9 +51,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Group::class, 'group_id');
     }
-    public function warehouses()
+    public function warehouse()
     {
-        return $this->hasMany(Warehouse::class, 'warehouse_id');
+        return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
 
     public function inGroup(string $groupName): bool
