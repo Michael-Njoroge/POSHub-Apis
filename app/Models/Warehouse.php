@@ -16,4 +16,10 @@ class Warehouse extends Model
     {
         return $this->hasMany(User::class, 'warehouse_id');
     }
+
+    public function products()
+    {
+        return $this->belongsToMany(Products::class, 'product_warehouse', 'warehouse_id', 'product_id')->withPivot('quantity')->withTimestamps();
+    }
+    
 }

@@ -5,21 +5,24 @@ use Illuminate\Routing\Controller as BaseController;
 
 class Controller extends BaseController
 {
-    public function sendResponse($result, $message,$code = 200)
+    public function sendResponse($result, $message, $code = 200)
     {
-        $data = $result['data'] ?? [];
-        if($data !== []) {
-            $result = $data;
-        }
-
+        $data = $result['data'] ?? $result;  
+    
         $response = [
             'success' => true,
-            'data'    => $result,
+            'data'    => $data,  
             'message' => $message,
         ];
-
+    
+        if (isset($result['links']) && isset($result['meta'])) {
+            $response['links'] = $result['links'];
+            $response['meta'] = $result['meta'];
+        }
+    
         return response()->json($response, $code);
     }
+    
 
     public function sendError($error, $errorMessages = [], $code = 404)
     {
