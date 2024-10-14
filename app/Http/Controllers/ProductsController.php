@@ -172,4 +172,10 @@ class ProductsController extends Controller
         $warehouses = Warehouse::all();
         return $this->sendResponse(WarehouseResource::collection($warehouses)->response()->getData(true), 'Warehouses retrieved successfully');
     }
+
+    public function get_warehouse_products(Request $request, Warehouse $warehouse)
+    {
+        $products = $warehouse->products()->paginate(25);
+        return $this->sendResponse(ProductResource::collection($products)->response()->getData(true), 'Products retrieved successfully');
+    }
 }

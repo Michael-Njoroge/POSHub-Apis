@@ -45,5 +45,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('/', [ProductsController::class, 'create_warehouse']);
         Route::get('/{warehouse}', [ProductsController::class, 'get_warehouse']);
         Route::put('/{warehouse}', [ProductsController::class, 'update_warehouse']);
+        Route::get('/{warehouse}/products', [ProductsController::class, 'get_warehouse_products']);
     });
 });
