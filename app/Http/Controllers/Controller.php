@@ -5,7 +5,7 @@ use Illuminate\Routing\Controller as BaseController;
 
 class Controller extends BaseController
 {
-    public function sendResponse($result, $message, $code = 200)
+    public function sendResponse($result, $message, $code = 200, $additionalFields = [])
     {
         $data = $result['data'] ?? $result;  
     
@@ -19,7 +19,7 @@ class Controller extends BaseController
             $response['links'] = $result['links'];
             $response['meta'] = $result['meta'];
         }
-    
+        $response = array_merge($response, $additionalFields);
         return response()->json($response, $code);
     }
     

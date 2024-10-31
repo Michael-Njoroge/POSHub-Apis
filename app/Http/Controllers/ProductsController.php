@@ -79,7 +79,7 @@ class ProductsController extends Controller
             'warehouse_quantities.*.warehouse_id' => 'required|uuid|exists:pos_warehouses,id|distinct',
             'warehouse_quantities.*.quantity' => 'required|integer|min:0'
         ]);
-    
+
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $uuid = Str::uuid();
@@ -87,15 +87,15 @@ class ProductsController extends Controller
             $image_path = $image->storeAs('product_images', $image_name, 'public');
             $data['image'] = asset('storage/' . $image_path);
         }
-    
+
         $warehouse_quantites = $request->input('warehouse_quantities', []);
         unset($data['warehouse_quantities']);
-    
+
         $product = Products::create($data);
         $warehouses = Warehouse::all();
-    
+
         $total_quantity = 0;
-    
+
         if (empty($warehouse_quantites)) {
             foreach ($warehouses as $warehouse) {
                 DB::table('product_warehouse')->insert([
@@ -108,7 +108,7 @@ class ProductsController extends Controller
             }
         } else {
             $added_warehouse = [];
-    
+
             foreach ($warehouse_quantites as $warehouse_data) {
                 DB::table('product_warehouse')->insert([
                     'product_id' => $product->id,
@@ -117,12 +117,12 @@ class ProductsController extends Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-    
+
                 $total_quantity += $warehouse_data['quantity'];
-    
+
                 $added_warehouse[] = $warehouse_data['warehouse_id'];
             }
-    
+
             foreach ($warehouses as $warehouse) {
                 if (!in_array($warehouse->id, $added_warehouse)) {
                     DB::table('product_warehouse')->insert([
@@ -135,13 +135,13 @@ class ProductsController extends Controller
                 }
             }
         }
-    
+
         $product->update(['quantity' => $total_quantity]);
-    
+
         $created_product = Products::with('category', 'status', 'warehouse_quantities')->find($product->id);
         return $this->sendResponse(ProductResource::make($created_product)->response()->getData(true), 'Product created successfully');
     }
-    
+
 
     public function get_products(Request $request)
     {
@@ -151,8 +151,7 @@ class ProductsController extends Controller
 
     public function create_warehouse(Request $request)
     {
-        if(!auth()->user()->inGroup('Owner'))
-        {
+        if (!auth()->user()->inGroup('Owner')) {
             return response()->json(['message' => 'Access denied for this user group'], 403);
         }
         $data = $request->validate([
