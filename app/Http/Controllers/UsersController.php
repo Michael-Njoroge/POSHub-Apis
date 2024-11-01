@@ -17,6 +17,7 @@ use App\Models\Warehouse;
 use App\Notifications\ForgotPassword;
 use App\Notifications\OtpNotification;
 use Carbon\Carbon;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -34,15 +35,15 @@ class UsersController extends Controller
             'phone' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:pos_users',
             'password' => 'required|string|min:6|confirmed',
-            'group_id' => 'required|uuid|exists:pos_groups,id',
         ]);
 
         $data['ip_address'] = $request->ip();
+        $data['group_id'] = Group::where('name', 'cashier')->first()->id;
         $data['username'] = strtolower($request->firstname . $request->lastname);
 
         $user = User::create($data);
 
-        $otp = rand(100000, 999999);
+        $otp = rand(1000, 9999);
         $user->otp = $otp;
         $user->otp_expires_at = Carbon::now()->addMinutes(10);
         $user->save();
@@ -52,7 +53,11 @@ class UsersController extends Controller
         $user->notify(new OtpNotification($otp));
 
         return response()->json([
-            'email' => $this->mask_info($user->email),
+            'success' => true,
+            'data' => [
+                'id' => encrypt($user->id),
+                'email' => $this->mask_info($user->email),
+            ],
             'message' => 'Check your email to verify your account.'
         ]);
     }
@@ -113,10 +118,15 @@ class UsersController extends Controller
         $request->validate([
             'id' => 'required|string',
             'otp' => 'required|integer',
-            'remember_me' => 'boolean'
+            'remember_me' => 'boolean',
+            'is_login' => 'boolean',
         ]);
 
-        $user = User::where('id', decrypt($request->id))->first();
+        if ($request->is_login) {
+            $user = User::where('id', decrypt($request->id))->first();
+        } else {
+            $user = User::where('email', $request->id)->first();
+        }
 
         if ($user->otp === $request->otp && Carbon::now()->lessThanOrEqualTo($user->otp_expires_at)) {
             $user->otp_verified_at = Carbon::now();
