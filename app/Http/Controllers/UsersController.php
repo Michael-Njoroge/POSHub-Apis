@@ -68,11 +68,15 @@ class UsersController extends Controller
         $first_warehouse = Warehouse::orderBy('created_at', 'asc')->first();
 
         $data['warehouse'] = $data['warehouse'] ?? $first_warehouse->id;
-        
+
         $user = User::where('email', $data['email'])->first();
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json([
+                'success' => false,
+                'data' => [],
+                'message' => 'Invalid credentials'
+            ], 401);
         }
 
         // if (!$user->inGroup('owner')) {
@@ -87,7 +91,7 @@ class UsersController extends Controller
             $user->update(['warehouse_id' => $request->warehouse]);
         }
 
-        $otp = rand(100000, 999999);
+        $otp = rand(1000, 9999);
         $user->otp = $otp;
         $user->otp_expires_at = Carbon::now()->addMinutes(10);
         $user->save();
@@ -95,20 +99,24 @@ class UsersController extends Controller
         $user->notify(new OtpNotification($otp));
 
         return response()->json([
-            'email' => $this->mask_info($user->email),
-            'phone' => $this->mask_info($user->phone),
+            'success' => true,
+            'data' => [
+                'email' => $this->mask_info($user->email),
+                'phone' => $this->mask_info($user->phone),
+                'id' => encrypt($user->id),
+            ],
             'message' => 'OTP sent. Please verify to complete login.'
         ]);
     }
     public function verify_otp(Request $request)
     {
         $request->validate([
-            'email' => 'required|string|email|exists:pos_users,email',
+            'id' => 'required|string',
             'otp' => 'required|integer',
             'remember_me' => 'boolean'
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('id', decrypt($request->id))->first();
 
         if ($user->otp === $request->otp && Carbon::now()->lessThanOrEqualTo($user->otp_expires_at)) {
             $user->otp_verified_at = Carbon::now();
@@ -137,12 +145,12 @@ class UsersController extends Controller
     public function resend_otp(Request $request)
     {
         $request->validate([
-            'email' => 'required|string|email|exists:pos_users,email',
+            'id' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('id', decrypt($request->id))->first();
 
-        $otp = rand(100000, 999999);
+        $otp = rand(1000, 9999);
 
         $user->otp = $otp;
         $user->otp_expires_at = Carbon::now()->addMinutes(10);
@@ -150,7 +158,10 @@ class UsersController extends Controller
 
         $user->notify(new OtpNotification($otp));
 
-        return response()->json(['message' => 'Success, OTP sent.']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Success, OTP sent.'
+        ]);
     }
 
 
