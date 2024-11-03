@@ -205,6 +205,13 @@ class UsersController extends Controller
         return $this->sendResponse(UsersLoginResource::make($login)->response()->getData(true), 'User login retrieved successfully');
     }
 
+    public function log_out(User $user)
+    {
+        $user->tokens()->delete();
+
+        return $this->sendResponse([], 'User logged out successfully');
+    }
+
     public function create_user(CreateUserRequest $request)
     {
         if (!auth()->user()->inGroup('Owner')) {
@@ -322,23 +329,28 @@ class UsersController extends Controller
         return $this->sendResponse(UsersResource::make($user)->response()->getData(true), 'User retrieved successfully');
     }
 
-    public function update_user(User $user, UpdateUserRequest $request)
+    public function update_user(User $user, Request $request)
     {
-        $user->update([
-            'email' => strtolower($request->email),
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'gender' => $request->gender,
+
+        $data = $request->validate([
+            'first_name' => 'sometimes|required|string|max:255',
+            'last_name' => 'sometimes|required|string|max:255',
+            'phone' => 'sometimes|required|string|max:255',
+            'gender' => 'sometimes|required|string|max:255',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
         ]);
+
+        dd($data);
 
         if ($request->hasFile('avatar')) {
             $image = $request->file('avatar');
             $uuid = Str::uuid();
             $image_name = $uuid . '-' . time() . '.' . $image->getClientOriginalExtension();
             $image_path = $image->storeAs('user_images', $image_name, 'public');
-            $user->avatar = asset('storage/' . $image_path);
-            $user->save();
+            $data['avatar'] = asset('storage/' . $image_path);
         }
+        
+        $user->update($data);
 
         return $this->sendResponse(UsersResource::make($user)->response()->getData(true), 'User updated successfully');
     }

@@ -33,6 +33,7 @@ class UsersResource extends JsonResource
             'group' => new GroupsResource($this->group),
             'warehouse' => new WarehousesResource($this->warehouse),
             'token' => $this->token,
+            'avatar' => $this->avatar,
             'active' => (bool)$this->active,
             'created_at' => $this->created_at->toDateTimeString(),
             'updated_at' => $this->updated_at->toDateTimeString(),
