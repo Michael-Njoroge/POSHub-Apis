@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\BillersResource;
 use App\Http\Resources\CustomersResource;
 use App\Http\Resources\SuppliersResource;
+use App\Http\Resources\UsersLoginResource;
 use App\Http\Resources\UsersResource;
 use App\Models\Company;
 use App\Models\Group;
@@ -195,6 +196,13 @@ class UsersController extends Controller
             'login' => $user->email,
             'login_time' => now(),
         ]);
+    }
+
+    public function get_user_login(User $user)
+    {
+        $login = UserLogin::where('user_id', $user->id)->latest()->first();
+
+        return $this->sendResponse(UsersLoginResource::make($login)->response()->getData(true), 'User login retrieved successfully');
     }
 
     public function create_user(CreateUserRequest $request)

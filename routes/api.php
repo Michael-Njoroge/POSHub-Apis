@@ -19,6 +19,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::match(['put', 'patch'], '/change-password', [UsersController::class, 'change_password']);
     Route::get('/users', [UsersController::class, 'get_users']);
     Route::get('/users/{user}', [UsersController::class, 'get_user']);
+    Route::get('/user-login/{user}', [UsersController::class, 'get_user_login']);
     Route::match(['put', 'patch'],'/users/{user}', [UsersController::class, 'update_user']);
     Route::post('/create-customer', [UsersController::class, 'create_company']);
     Route::get('/change-user-status/{user}', [UsersController::class, 'change_user_status']);
