@@ -333,14 +333,22 @@ class UsersController extends Controller
     {
 
         $data = $request->validate([
-            'first_name' => 'sometimes|required|string|max:255',
-            'last_name' => 'sometimes|required|string|max:255',
-            'phone' => 'sometimes|required|string|max:255',
-            'gender' => 'sometimes|required|string|max:255',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'phone' => 'required|string|max:255',
+            'gender' => 'required|string|max:255',
         ]);
 
-        dd($data);
+        $user->update($data);
+
+        return $this->sendResponse(UsersResource::make($user)->response()->getData(true), 'User updated successfully');
+    }
+
+    public function update_profile_image(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
+        ]);
 
         if ($request->hasFile('avatar')) {
             $image = $request->file('avatar');
@@ -348,11 +356,17 @@ class UsersController extends Controller
             $image_name = $uuid . '-' . time() . '.' . $image->getClientOriginalExtension();
             $image_path = $image->storeAs('user_images', $image_name, 'public');
             $data['avatar'] = asset('storage/' . $image_path);
-        }
-        
-        $user->update($data);
 
-        return $this->sendResponse(UsersResource::make($user)->response()->getData(true), 'User updated successfully');
+            if ($user->avatar) {
+                $path = str_replace(asset('storage') . '/', '', $user->avatar);                
+                Storage::disk('public')->delete($path);
+            }
+
+            $user->avatar = $data['avatar'];
+            $user->save();
+        }
+
+        return $this->sendResponse(UsersResource::make($user)->response()->getData(true), 'User profile updated successfully');
     }
 
     public function create_company(Request $request)
