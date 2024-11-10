@@ -7,9 +7,11 @@ use App\Http\Requests\CustomerRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\BillersResource;
 use App\Http\Resources\CustomersResource;
+use App\Http\Resources\GroupsResource;
 use App\Http\Resources\SuppliersResource;
 use App\Http\Resources\UsersLoginResource;
 use App\Http\Resources\UsersResource;
+use App\Http\Resources\WarehousesResource;
 use App\Models\Company;
 use App\Models\Group;
 use App\Models\User;
@@ -218,22 +220,23 @@ class UsersController extends Controller
             return response()->json(['message' => 'Access denied for this user group'], 403);
         }
 
+        $data = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'phone' => 'required|string|max:255',
+            'gender' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:pos_users',
+            'password' => 'required|string|min:8|confirmed',
+            'group_id' => 'required|exists:pos_groups,id',
+            'warehouse_id' => 'required|exists:pos_warehouses,id',
+            'username' => 'required|string|max:255',
+            'active' => 'boolean',
+        ]);
+
         $cashier_group = Group::where('name', 'cashier')->first();
 
-        $group_id = $request->group_id ?? $cashier_group->id;
-
-        $user = User::create([
-            'username' => strtolower($request->username),
-            'email' => strtolower($request->email),
-            'password' => Hash::make($request->password),
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'warehouse_id' => $request->warehouse_id,
-            'phone' => $request->phone,
-            'gender' => $request->gender,
-            'group_id' => $group_id,
-            'active' => $request->status ?? true,
-        ]);
+        $data['group_id'] = $request->group_id ? $request->group_id : $cashier_group->id;
+        $user = User::create($data);
 
         $created_user = User::with('group', 'warehouse')->find($user->id);
 
@@ -358,7 +361,7 @@ class UsersController extends Controller
             $data['avatar'] = asset('storage/' . $image_path);
 
             if ($user->avatar) {
-                $path = str_replace(asset('storage') . '/', '', $user->avatar);                
+                $path = str_replace(asset('storage') . '/', '', $user->avatar);
                 Storage::disk('public')->delete($path);
             }
 
@@ -488,5 +491,12 @@ class UsersController extends Controller
         $user->delete();
 
         return $this->sendResponse([], 'User deleted successfully');
+    }
+
+    public function get_groups(Request $request)
+    {
+        $groups = Group::all();
+
+        return $this->sendResponse(GroupsResource::collection($groups)->response()->getData(true), 'Groups retrieved successfully');
     }
 }
