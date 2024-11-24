@@ -24,7 +24,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::match(['put', 'patch', 'post'], '/update-profile/{user}', [UsersController::class, 'update_profile_image']);
     Route::post('/logout/{user}', [UsersController::class, 'log_out']);
     Route::post('/create-customer', [UsersController::class, 'create_company']);
-    Route::get('/change-user-status/{user}', [UsersController::class, 'change_user_status']);
+    Route::put('/change-user-status/{user}', [UsersController::class, 'change_user_status']);
     Route::delete('/users/{user}', [UsersController::class, 'delete_user']);
     Route::get('/billers', [UsersController::class, 'get_billers']);
     Route::get('/customers', [UsersController::class, 'get_customers']);

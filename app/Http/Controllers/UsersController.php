@@ -339,7 +339,9 @@ class UsersController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'phone' => 'required|string|max:255',
-            'gender' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255',
+            'group_id' => 'required|exists:pos_groups,id',
+            'warehouse_id' => 'required|exists:pos_warehouses,id',
         ]);
 
         $user->update($data);
@@ -475,7 +477,7 @@ class UsersController extends Controller
 
         $user->update(['active' => $request->status]);
 
-        return $this->sendResponse([], 'User status updated successfully');
+        return $this->sendResponse([], $user->active ? 'User activated successfully' : 'User deactivated successfully');
     }
 
     public function delete_user(User $user)
