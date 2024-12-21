@@ -48,3 +48,37 @@ return new class extends Migration
         Schema::dropIfExists('pos_products');
     }
 };
+
+
+Schema::create('products', function (Blueprint $table) {
+    $table->uuid('id')->primary();
+    $table->string('title');
+    $table->string('slug')->unique();
+    $table->text('description');
+    $table->decimal('price', 8, 2);
+    $table->foreignUuid('brand')->constrained('brands')->onDelete('cascade');
+    $table->foreignUuid('category')->constrained('product_categories')->onDelete('cascade');
+    $table->integer('quantity');
+    $table->integer('sold')->default(0);
+    $table->decimal('total_ratings', 8, 2)->default(0);
+    $table->json('color')->nullable();
+    $table->string('tags');
+    $table->timestamps();
+});
+
+Schema::create('user_products', function (Blueprint $table) {
+    $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
+    $table->foreignUuid('product_id')->constrained('products')->onDelete('cascade');
+    $table->timestamps();
+
+    $table->unique(['user_id', 'product_id']);
+});
+
+Schema::create('ratings', function (Blueprint $table) {
+    $table->uuid('id')->primary();
+    $table->foreignUuid('product_id')->constrained('products')->onDelete('cascade');
+    $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
+    $table->integer('star')->nullable(false);
+    $table->text('comment')->nullable();
+    $table->timestamps();
+});

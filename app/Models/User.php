@@ -57,6 +57,27 @@ class User extends Authenticatable
         return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
 
+    public function wishlist()
+    {
+        return $this->belongsToMany(Products::class, 'user_products', 'user_id', 'product_id')
+                    ->withTimestamps();;
+    }
+
+    public function likedBlogs()
+    {
+        return $this->belongsToMany(Blog::class,"likes");
+    }
+
+    public function dislikedBlogs()
+    {
+        return $this->belongsToMany(Blog::class,"dislikes");
+    }
+
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class);
+    }
+
     public function inGroup(string $groupName): bool
     {
         return $this->group && $this->group->name === $groupName;
