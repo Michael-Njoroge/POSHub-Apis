@@ -145,8 +145,68 @@ class ProductsController extends Controller
 
     public function get_products(Request $request)
     {
-        $products = Products::with('category', 'status', 'warehouse_quantities')->paginate(25);
-        return $this->sendResponse(ProductResource::collection($products)->response()->getData(true), 'Products retrieved successfully');
+        try {
+            $query = Products::with(['category', 'status', 'warehouse_quantities', 'media', 'ratings.user', 'brand']);
+
+            //Filtering
+            if ($request->has('brand')) {
+                $query->whereHas('brand', function ($q) use ($request) {
+                    $q->where('title', $request->query('brand'));
+                });
+            }
+
+            if ($request->has('category')) {
+                $query->whereHas('category', function ($q) use ($request) {
+                    $q->where('title', $request->query('category'));
+                });
+            }
+
+            if ($request->has('tag')) {
+                $query->whereJsonContains('tags', $request->query('tag'));
+            }
+
+            if ($request->has('color')) {
+                $query->whereJsonContains('color', $request->query('color'));
+            }
+
+            if ($request->has('minPrice')) {
+                $query->where('price', '>=', $request->query('minPrice'));
+            }
+
+            if ($request->has('maxPrice')) {
+                $query->where('price', '<=', $request->query('maxPrice'));
+            }
+
+            //Sorting
+            if ($request->has('sort')) {
+                $sortFields = explode(',', $request->query('sort'));
+                foreach ($sortFields as $sortField) {
+                    $direction = 'asc';
+                    if (substr($sortField, 0, 1) === '-') {
+                        $direction = 'desc';
+                        $sortField = substr($sortField, 1);
+                    }
+                    $query->orderBy($sortField, $direction);
+                }
+            } else {
+                $query->orderBy('created_at', 'desc');
+            }
+
+            //Limiting Fields
+            if ($request->has('fields')) {
+                $fields = explode(',', $request->query('fields'));
+                $query->select($fields);
+            }
+
+            // Pagination
+            $page = $request->query('page', 1);
+            $limit = $request->query('limit', 20);
+            $products = $query->paginate($limit, ['*'], 'page', $page);
+
+            return $this->sendResponse(ProductResource::collection($products)->response()->getData(true), 'Products retrieved successfully');
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function create_warehouse(Request $request)
