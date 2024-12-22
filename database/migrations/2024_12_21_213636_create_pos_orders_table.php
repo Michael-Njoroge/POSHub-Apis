@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('pos_orders', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignUuid('user_id')->constrained('pos_users')->onDelete('cascade');
             $table->timestamp('payed_at')->useCurrent();
             $table->decimal('total_price', 10, 2);
             $table->decimal('total_price_after', 10, 2)->nullable();

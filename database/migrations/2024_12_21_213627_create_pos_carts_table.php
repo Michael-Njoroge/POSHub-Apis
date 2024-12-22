@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('pos_carts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->constrained('users');
+            $table->foreignUuid('user_id')->constrained('pos_users');
             $table->decimal('cart_total', 8, 2)->default(0);
             $table->timestamps();
         });

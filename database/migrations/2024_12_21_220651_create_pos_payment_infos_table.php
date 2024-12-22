@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::table('orders',function (Blueprint $table) {
+        Schema::table('pos_orders',function (Blueprint $table) {
             $table->foreignUuid('payment_info_id')->constrained('pos_payment_infos');
         });
     }
