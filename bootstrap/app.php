@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\ActiveUser;
+use App\Http\Middleware\AdminUser;
+use App\Http\Middleware\CorsMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,7 +15,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->alias([
+            'admin' => AdminUser::class,
+            'active' => ActiveUser::class,
+        ]);
+
+        $middleware->validateCsrfTokens(except: [
+            env('APP_URL') . '/researchjspost'
+        ]);
+        $middleware->append(CorsMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
