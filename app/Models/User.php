@@ -48,6 +48,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function user_logins()
+    {
+        return $this->hasMany(UserLogin::class);
+    }
+
     public function group()
     {
         return $this->belongsTo(Group::class, 'group_id');
