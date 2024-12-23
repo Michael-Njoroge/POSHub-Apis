@@ -6,7 +6,7 @@ use App\Http\Resources\ProductCategoryResource;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\ProductStatusResource;
 use App\Http\Resources\UsersResource;
-use App\Http\Resources\WarehouseResource;
+use App\Http\Resources\WarehousesResource;
 use App\Models\Media;
 use App\Models\ProductCategory;
 use App\Models\Products;
@@ -32,7 +32,7 @@ class ProductsController extends Controller
         $created_category = ProductCategory::find($category->id);
         return $this->sendResponse(ProductCategoryResource::make($created_category)->response()->getData(true), 'Category created successfully');
     }
-    
+
     //Create product status
     public function create_product_status(Request $request)
     {
@@ -90,7 +90,7 @@ class ProductsController extends Controller
             'color' => 'nullable|array',
             'color.*' => 'uuid|exists:colors,id',
             'tags' => 'required|string',
-            'media_ids' => 'nullable|array', 
+            'media_ids' => 'nullable|array',
             'media_ids.*' => 'uuid|exists:media,id',
         ]);
 
@@ -107,7 +107,7 @@ class ProductsController extends Controller
         // dd($slug);
         $product = Products::where('slug', $slug)->first();
 
-        if($product){
+        if ($product) {
             return $this->sendError($error = 'Product with this slug already exists', $code = 403);
         }
 
@@ -119,7 +119,7 @@ class ProductsController extends Controller
 
         $product = Products::create($data);
 
-        if(!empty($mediaData)) {
+        if (!empty($mediaData)) {
             Media::whereIn('id', $mediaData)
                 ->update(['medially_id' => $product->id, 'medially_type' => Products::class]);
         }
@@ -170,7 +170,7 @@ class ProductsController extends Controller
 
         $product->update(['quantity' => $total_quantity]);
 
-        $created_product = Products::with('category', 'status', 'warehouse_quantities','media','ratings.user')->find($product->id);
+        $created_product = Products::with('category', 'status', 'warehouse_quantities', 'media', 'ratings.user')->find($product->id);
         return $this->sendResponse(ProductResource::make($created_product)->response()->getData(true), 'Product created successfully');
     }
 
@@ -248,34 +248,16 @@ class ProductsController extends Controller
         return $this->sendResponse(ProductResource::make($product)->response()->getData(true), 'Product retrieved successfully');
     }
 
-    //Create warehouse
-    public function create_warehouse(Request $request)
-    {
-        if (!auth()->user()->inGroup('Owner')) {
-            return response()->json(['message' => 'Access denied for this user group'], 403);
-        }
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'required|string',
-            'address' => 'required|string',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string',
-        ]);
-        $warehouse = Warehouse::create($data);
-        $created_warehouse = Warehouse::find($warehouse->id);
-        return $this->sendResponse(WarehouseResource::make($created_warehouse)->response()->getData(true), 'Warehouse created successfully');
-    }
-
     //Update product
     public function update_product(Request $request, Products $product)
     {
         $mediaData = $request->input('media_ids');
-        if(!empty($mediaData)){
+        if (!empty($mediaData)) {
             Media::whereIn('id', $mediaData)->update(['medially_id' => $product->id, 'medially_type' => Products::class]);
         }
-       $requestData = $request->except(['media_ids']);
+        $requestData = $request->except(['media_ids']);
         $product->update($requestData);
-        $updatedProduct = Products::with('media','ratings.user')->find($product->id);
+        $updatedProduct = Products::with('media', 'ratings.user')->find($product->id);
         return $this->sendResponse(ProductResource::make($updatedProduct)->response()->getData(true), 'Product updated successfully');
     }
 
@@ -284,10 +266,10 @@ class ProductsController extends Controller
     {
         $mediaItems = Media::where('medially_id', $product->id)->where('medially_type', Products::class)->get();
         foreach ($mediaItems as $mediaItem) {
-            try{
+            try {
                 Cloudinary::destroy($mediaItem->public_id);
                 $mediaItem->delete();
-            }catch(\Exception $e){
+            } catch (\Exception $e) {
                 return response()->json(['error' => $e->getMessage()], 500);
             }
         }
@@ -303,8 +285,8 @@ class ProductsController extends Controller
             $user->detach('wishlist', $product->id);
             $user->load('wishlist');
             return $this->sendResponse([], 'Product removed from wishlist');
-        }else{
-            $user->attach('wishlist', $product->id);    
+        } else {
+            $user->attach('wishlist', $product->id);
             $user->load('wishlist');
             return $this->sendResponse(UsersResource::make($user)->response()->getData(true), 'Product added to wishlist');
         }
@@ -315,7 +297,7 @@ class ProductsController extends Controller
     {
         $user = auth()->user();
         $wishlist = $user->wishlist()->paginate(25);
-        $user->load(['wishlist','ratings.user']);
+        $user->load(['wishlist', 'ratings.user']);
         return $this->sendResponse(ProductResource::make($wishlist)->response()->getData(true), 'User wishlist retrieved successfully');
     }
 
@@ -335,7 +317,7 @@ class ProductsController extends Controller
                 'comment' => $data['comment'],
             ]);
             $message = 'Rating updated successfully';
-        }else{
+        } else {
             Rating::create([
                 'user_id' => $user->id,
                 'product_id' => $product->id,
@@ -350,15 +332,83 @@ class ProductsController extends Controller
         return $this->sendResponse(ProductResource::make($product)->response()->getData(true), $message);
     }
 
+    //Create warehouse
+    public function create_warehouse(Request $request)
+    {
+        if (!auth()->user()->inGroup('Owner')) {
+            return response()->json(['message' => 'Access denied for this user group'], 403);
+        }
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string',
+            'address' => 'required|string',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string',
+            'active' => 'boolean',
+        ]);
+        $warehouse = Warehouse::create($data);
+        $created_warehouse = Warehouse::find($warehouse->id);
+        return $this->sendResponse(WarehousesResource::make($created_warehouse)->response()->getData(true), 'Warehouse created successfully');
+    }
+
+    //Update warehouse
+    public function update_warehouse(Request $request, Warehouse $warehouse)
+    {
+        if (!auth()->user()->inGroup('Owner')) {
+            return response()->json(['message' => 'Access denied for this user group'], 403);
+        }
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string',
+            'address' => 'required|string',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string',
+            'active' => 'boolean',
+        ]);
+        $warehouse->update($data);
+        $updated_warehouse = Warehouse::find($warehouse->id);
+        return $this->sendResponse(WarehousesResource::make($updated_warehouse)->response()->getData(true), 'Warehouse updated successfully');
+    }
+
     //Get all warehouses
-    public function get_warehouses(Request $request)
+    public function get_warehouses()
     {
         $warehouses = Warehouse::all();
-        return $this->sendResponse(WarehouseResource::collection($warehouses)->response()->getData(true), 'Warehouses retrieved successfully');
+        return $this->sendResponse(WarehousesResource::collection($warehouses)->response()->getData(true), 'Warehouses retrieved successfully');
+    }
+
+    //Get warehouse
+    public function get_warehouse(Warehouse $warehouse)
+    {
+        return $this->sendResponse(WarehousesResource::make($warehouse)->response()->getData(true), 'Warehouse retrieved successfully');
+    }
+
+    //Delete warehouse
+    public function delete_warehouse(Warehouse $warehouse)
+    {
+        if (!auth()->user()->inGroup('Owner')) {
+            return response()->json(['message' => 'Access denied for this user group'], 403);
+        }
+        $warehouse->delete();
+        return $this->sendResponse([], 'Warehouse deleted successfully');
+    }
+
+    //Update warehouse status
+    public function update_warehouse_status(Request $request, Warehouse $warehouse)
+    {
+        if (!auth()->user()->inGroup('Owner')) {
+            return response()->json(['message' => 'Access denied for this user group'], 403);
+        }
+        $data = $request->validate([
+            'active' => 'boolean',
+        ]);
+        $warehouse->update($data);
+
+        return $this->sendResponse(WarehousesResource::make($warehouse)->response()->getData(true), 'Warehouse status updated successfully');
     }
 
     //Get warehouse products
-    public function get_warehouse_products(Request $request, Warehouse $warehouse)
+    public function get_warehouse_products(Warehouse $warehouse)
     {
         $products = $warehouse->products()->paginate(25);
         return $this->sendResponse(ProductResource::collection($products)->response()->getData(true), 'Products retrieved successfully');
