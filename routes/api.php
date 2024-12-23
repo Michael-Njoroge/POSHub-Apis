@@ -112,6 +112,7 @@ Route::middleware(['auth:sanctum','active'])->group(function () {
     Route::prefix('categories')->group(function () {
         Route::post('/', [ProductsController::class, 'create_category']);
         Route::put('/{category}', [ProductsController::class, 'update_category']);
+        Route::delete('/{category}', [ProductsController::class, 'delete_category']);
     });
 
     //Statuses
