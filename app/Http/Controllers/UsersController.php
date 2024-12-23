@@ -149,6 +149,8 @@ class UsersController extends Controller
                 'warehouse_id' => $request->warehouse ?? Warehouse::orderBy('created_at', 'asc')->first()->id,
             ]);
 
+            $user->load('user_logins');
+
             return $this->sendResponse(UsersResource::make($user, $token)->response()->getData(true), 'Success');
         }
 

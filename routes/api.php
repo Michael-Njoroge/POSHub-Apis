@@ -121,6 +121,16 @@ Route::middleware(['auth:sanctum','active'])->group(function () {
         Route::post('/', [ProductsController::class, 'create_product_status']);
         Route::get('/{status}', [ProductsController::class, 'get_product_status']);
         Route::put('/{status}', [ProductsController::class, 'update_product_status']);
+        Route::delete('/{status}', [ProductsController::class, 'delete_product_status']);
+    });
+
+     //Colors
+     Route::prefix('colors')->group(function () {
+        Route::get('/', [ProductsController::class, 'get_colors']);
+        Route::post('/', [ProductsController::class, 'create_color']);
+        Route::get('/{color}', [ProductsController::class, 'get_color']);
+        Route::put('/{color}', [ProductsController::class, 'update_color']);
+        Route::delete('/{color}', [ProductsController::class, 'delete_color']);
     });
 
     //Warehouses

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ColorResource;
 use App\Http\Resources\ProductCategoryResource;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\ProductStatusResource;
 use App\Http\Resources\UsersResource;
 use App\Http\Resources\WarehousesResource;
+use App\Models\Color;
 use App\Models\Media;
 use App\Models\ProductCategory;
 use App\Models\Products;
@@ -79,6 +81,75 @@ class ProductsController extends Controller
     {
         $statuses = ProductStatus::paginate(25);
         return $this->sendResponse(ProductStatusResource::collection($statuses)->response()->getData(true), 'Statuses retrieved successfully');
+    }
+
+    //Update product status
+    public function update_product_status(Request $request, $id)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $uuid = Str::uuid();
+            $imageName = $uuid . '-' . time() . '.' . $image->getClientOriginalExtension();
+            $image_path = $image->storeAs('product_status', $imageName, 'public');
+            $data['image'] = asset('storage/' . $image_path);
+        }
+        $status = ProductStatus::find($id);
+        $status->update($data);
+        $updated_status = ProductStatus::find($status->id);
+        return $this->sendResponse(ProductStatusResource::make($updated_status)->response()->getData(true), 'Status updated successfully');
+    }
+
+    //Delete product status
+    public function delete_product_status(Request $request, $id)
+    {
+        $status = ProductStatus::find($id);
+        $status->delete();
+        return $this->sendResponse([], 'Status deleted successfully');
+    }
+
+    //Create color
+    public function create_color(Request $request)
+    {
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'color' => 'required|string',
+        ]);
+        $data['slug'] = Str::slug($data['title']);
+        $color = Color::create($data);
+        $created_color = Color::find($color->id);
+        return $this->sendResponse(ColorResource::make($created_color)->response()->getData(true), 'Color created successfully');
+    }
+
+    //Get all colors
+    public function get_colors(Request $request)
+    {
+        $colors = Color::paginate(25);
+        return $this->sendResponse(ColorResource::collection($colors)->response()->getData(true), 'Colors retrieved successfully');
+    }
+
+    //Update color
+    public function update_color(Request $request, Color $color)
+    {
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'color' => 'required|string',
+        ]);
+        $data['slug'] = Str::slug($data['title']);
+        $color->update($data);
+        $updated_color = Color::find($color->id);
+        return $this->sendResponse(ColorResource::make($updated_color)->response()->getData(true), 'Color updated successfully');
+    }
+
+    //Delete color
+    public function delete_color(Color $color)
+    {
+        $color->delete();
+        return $this->sendResponse([], 'Color deleted successfully');
     }
 
     //Get all product categories
