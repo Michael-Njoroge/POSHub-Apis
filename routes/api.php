@@ -128,7 +128,9 @@ Route::middleware(['auth:sanctum','active'])->group(function () {
         Route::post('/', [ProductsController::class, 'create_warehouse']);
         Route::get('/{warehouse}', [ProductsController::class, 'get_warehouse']);
         Route::put('/{warehouse}', [ProductsController::class, 'update_warehouse']);
+        Route::delete('/{warehouse}', [ProductsController::class, 'delete_warehouse']);
         Route::get('/{warehouse}/products', [ProductsController::class, 'get_warehouse_products']);
+        Route::put('/{warehouse}/status', [ProductsController::class, 'update_warehouse_status']);
     });
 
     //****************************ADMIN ROUTES**************************//
