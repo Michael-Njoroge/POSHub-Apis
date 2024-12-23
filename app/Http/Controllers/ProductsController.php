@@ -33,6 +33,27 @@ class ProductsController extends Controller
         return $this->sendResponse(ProductCategoryResource::make($created_category)->response()->getData(true), 'Category created successfully');
     }
 
+    //Update product category
+    public function update_category(Request $request, $id)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string',
+        ]);
+        $category = ProductCategory::find($id);
+        $category->update($data);
+        $updated_category = ProductCategory::find($category->id);
+        return $this->sendResponse(ProductCategoryResource::make($updated_category)->response()->getData(true), 'Category updated successfully');
+    }
+
+    //Delete product category
+    public function delete_category(Request $request, $id)
+    {
+        $category = ProductCategory::find($id);
+        $category->delete();
+        return $this->sendResponse([], 'Category deleted successfully');
+    }
+
     //Create product status
     public function create_product_status(Request $request)
     {
