@@ -3,15 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateUserRequest;
-use App\Http\Requests\CustomerRequest;
-use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\BillersResource;
 use App\Http\Resources\CustomersResource;
 use App\Http\Resources\GroupsResource;
 use App\Http\Resources\SuppliersResource;
 use App\Http\Resources\UsersLoginResource;
 use App\Http\Resources\UsersResource;
-use App\Http\Resources\WarehousesResource;
 use App\Models\Company;
 use App\Models\Group;
 use App\Models\User;
@@ -20,7 +17,6 @@ use App\Models\Warehouse;
 use App\Notifications\ForgotPassword;
 use App\Notifications\OtpNotification;
 use Carbon\Carbon;
-use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;

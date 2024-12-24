@@ -14,6 +14,11 @@ class Products extends Model
     protected $guarded = [];
     protected $table = 'pos_products';
 
+    public function tags()
+    {
+        return $this->morphedByMany(Tag::class, 'taggable', 'pos_taggables', 'taggable_id', 'tag_id');
+    }
+
     public function category()
     {
         return $this->belongsTo(ProductCategory::class, 'category_id');

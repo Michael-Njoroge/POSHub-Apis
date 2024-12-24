@@ -13,6 +13,11 @@ class Blog extends Model
     protected $guarded = [];
     protected $table = 'pos_blogs';
 
+    public function tags()
+    {
+        return $this->morphedByMany(Tag::class, 'taggable', 'pos_taggables', 'taggable_id', 'tag_id');
+    }
+
     public function likedBy()
     {
         return $this->belongsToMany(User::class, "blog_likes");

@@ -7,6 +7,7 @@ use App\Http\Controllers\CouponController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MpesaController;
 use App\Http\Controllers\ProductsController;
+use App\Http\Controllers\TagController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -122,6 +123,15 @@ Route::middleware(['auth:sanctum','active'])->group(function () {
         Route::get('/{status}', [ProductsController::class, 'get_product_status']);
         Route::put('/{status}', [ProductsController::class, 'update_product_status']);
         Route::delete('/{status}', [ProductsController::class, 'delete_product_status']);
+    });
+
+     //Tags
+     Route::prefix('tags')->group(function () {
+        Route::get('/', [TagController::class, 'get_tags']);
+        Route::post('/', [TagController::class, 'create_tag']);
+        Route::get('/{tag}', [TagController::class, 'get_tag']);
+        Route::put('/{tag}', [TagController::class, 'update_tag']);
+        Route::delete('/{tag}', [TagController::class, 'delete_tag']);
     });
 
      //Colors
