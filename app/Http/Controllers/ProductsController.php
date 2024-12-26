@@ -14,6 +14,7 @@ use App\Models\ProductCategory;
 use App\Models\Products;
 use App\Models\ProductStatus;
 use App\Models\Rating;
+use App\Models\Tag;
 use App\Models\User;
 use App\Models\Warehouse;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
@@ -180,10 +181,11 @@ class ProductsController extends Controller
             'warehouse_quantities.*.warehouse_id' => 'required|uuid|exists:pos_warehouses,id|distinct',
             'warehouse_quantities.*.quantity' => 'required|integer|min:0',
             'color' => 'nullable|array',
-            'color.*' => 'uuid|exists:colors,id',
-            'tags' => 'required|string',
+            'color.*' => 'uuid|exists:pos_colors,id',
+            'tags' => 'nullable|array',
+            'tags.*' => 'uuid|exists:pos_tags,id',
             'media_ids' => 'nullable|array',
-            'media_ids.*' => 'uuid|exists:media,id',
+            'media_ids.*' => 'uuid|exists:pos_media,id',
         ]);
 
         // if ($request->hasFile('image')) {
@@ -194,15 +196,8 @@ class ProductsController extends Controller
         //     $data['image'] = asset('storage/' . $image_path);
         // }
 
-        $slug = Str::slug($data['title']);
+        $slug = Str::slug($data['name']);
         $data['slug'] = $slug;
-        // dd($slug);
-        $product = Products::where('slug', $slug)->first();
-
-        if ($product) {
-            return $this->sendError($error = 'Product with this slug already exists', $code = 403);
-        }
-
         $mediaData = $request->input('media_ids');
         unset($data['media_ids']);
 
@@ -262,7 +257,13 @@ class ProductsController extends Controller
 
         $product->update(['quantity' => $total_quantity]);
 
-        $created_product = Products::with('category', 'status', 'warehouse_quantities', 'media', 'ratings.user')->find($product->id);
+        $tags = $request->input('tags', []);
+        foreach ($tags as $tagId) {
+            $product->tags()->attach($tagId);
+        }
+
+
+        $created_product = Products::with('category', 'status', 'warehouse_quantities', 'media', 'ratings.user', 'tags')->find($product->id);
         return $this->sendResponse(ProductResource::make($created_product)->response()->getData(true), 'Product created successfully');
     }
 

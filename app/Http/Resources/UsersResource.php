@@ -21,22 +21,25 @@ class UsersResource extends JsonResource
     public function toArray(Request $request): array
     {
 
-        return 
-        [
-            'id' => $this->id,
-            'username' => $this->username,
-            'email' => $this->email,
-            'first_name' => $this->first_name,
-            'last_name' => $this->last_name,
-            'phone' => $this->phone,
-            'gender' => $this->gender,
-            'group' => new GroupsResource($this->group),
-            'warehouse' => new WarehousesResource($this->warehouse),
-            'token' => $this->token,
-            'avatar' => $this->avatar,
-            'active' => (bool)$this->active,
-            'created_at' => $this->created_at->toDateTimeString(),
-            'updated_at' => $this->updated_at->toDateTimeString(),
-        ];
+        return
+            [
+                'id' => $this->id,
+                'username' => $this->username,
+                'email' => $this->email,
+                'first_name' => $this->first_name,
+                'last_name' => $this->last_name,
+                'phone' => $this->phone,
+                'gender' => $this->gender,
+                'group' => new GroupsResource($this->group),
+                'warehouse' => new WarehousesResource($this->warehouse),
+                'token' => $this->token,
+                'avatar' => $this->avatar,
+                'login' => $this->user_logins()->latest()->first()?->login,
+                'login_time' => $this->user_logins()->latest()->first()?->login_time,
+                'ip' => $this->user_logins()->latest()->first()?->ip_address,
+                'active' => (bool)$this->active,
+                'created_at' => $this->created_at->toDateTimeString(),
+                'updated_at' => $this->updated_at->toDateTimeString(),
+            ];
     }
 }

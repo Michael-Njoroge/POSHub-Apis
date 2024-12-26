@@ -7,6 +7,7 @@ use App\Http\Controllers\CouponController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MpesaController;
 use App\Http\Controllers\ProductsController;
+use App\Http\Controllers\TagController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -70,6 +71,7 @@ Route::prefix('coupons')->group(function () {
 //Media
 Route::prefix('media')->group(function () {
     Route::post('/upload',[MediaController::class,'upload'])->name('products.upload');
+    Route::delete('/delete',[MediaController::class,'deleteFromCloudinary'])->name('products.delete');
 });
 
 //Payents
@@ -124,6 +126,15 @@ Route::middleware(['auth:sanctum','active'])->group(function () {
         Route::delete('/{status}', [ProductsController::class, 'delete_product_status']);
     });
 
+     //Tags
+     Route::prefix('tags')->group(function () {
+        Route::get('/', [TagController::class, 'get_tags']);
+        Route::post('/', [TagController::class, 'create_tag']);
+        Route::get('/{tag}', [TagController::class, 'get_tag']);
+        Route::put('/{tag}', [TagController::class, 'update_tag']);
+        Route::delete('/{tag}', [TagController::class, 'delete_tag']);
+    });
+
      //Colors
      Route::prefix('colors')->group(function () {
         Route::get('/', [ProductsController::class, 'get_colors']);
@@ -149,7 +160,7 @@ Route::middleware(['auth:sanctum','active'])->group(function () {
     Route::middleware(['auth:sanctum', 'admin', 'active'])->group(function () {
         //Products
         Route::prefix('products')->group(function () {
-            Route::post('/', [ProductsController::class, 'create_product']);
+            Route::post('/create-product', [ProductsController::class, 'create_product']);
             Route::put('/{product}', [ProductsController::class, 'update_product']);
         });
 
