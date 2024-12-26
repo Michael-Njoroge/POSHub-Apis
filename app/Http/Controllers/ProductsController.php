@@ -196,15 +196,8 @@ class ProductsController extends Controller
         //     $data['image'] = asset('storage/' . $image_path);
         // }
 
-        $slug = Str::slug($data['title']);
+        $slug = Str::slug($data['name']);
         $data['slug'] = $slug;
-        // dd($slug);
-        $product = Products::where('slug', $slug)->first();
-
-        if ($product) {
-            return $this->sendError($error = 'Product with this slug already exists', $code = 403);
-        }
-
         $mediaData = $request->input('media_ids');
         unset($data['media_ids']);
 

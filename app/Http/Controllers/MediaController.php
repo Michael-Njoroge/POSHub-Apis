@@ -109,7 +109,7 @@ class MediaController extends Controller
     public function deleteFromCloudinary(Request $request)
     {
         $request->validate([
-            'public_ids' => 'required|array|exists:media,public_id',
+            'public_ids' => 'required|array|exists:pos_media,public_id',
         ]);
 
         $publicIds = $request->input('public_ids');

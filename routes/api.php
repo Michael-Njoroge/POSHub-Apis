@@ -71,6 +71,7 @@ Route::prefix('coupons')->group(function () {
 //Media
 Route::prefix('media')->group(function () {
     Route::post('/upload',[MediaController::class,'upload'])->name('products.upload');
+    Route::delete('/delete',[MediaController::class,'deleteFromCloudinary'])->name('products.delete');
 });
 
 //Payents
@@ -159,7 +160,7 @@ Route::middleware(['auth:sanctum','active'])->group(function () {
     Route::middleware(['auth:sanctum', 'admin', 'active'])->group(function () {
         //Products
         Route::prefix('products')->group(function () {
-            Route::post('/', [ProductsController::class, 'create_product']);
+            Route::post('/create-product', [ProductsController::class, 'create_product']);
             Route::put('/{product}', [ProductsController::class, 'update_product']);
         });
 
