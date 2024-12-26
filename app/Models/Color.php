@@ -12,4 +12,9 @@ class Color extends Model
 
     protected $guarded = [];
     protected $table = 'pos_colors';
+
+    public function products()
+    {
+        return $this->belongsToMany(Products::class, 'pos_product_color');
+    }
 }

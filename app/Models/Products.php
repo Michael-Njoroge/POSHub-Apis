@@ -23,6 +23,11 @@ class Products extends Model
     {
         return $this->belongsTo(ProductCategory::class, 'category_id');
     }
+
+    public function colors()
+    {
+        return $this->belongsToMany(Color::class, 'pos_product_color');
+    }
     
     public function ratings()
     {
@@ -40,7 +45,7 @@ class Products extends Model
 
     public function warehouse_quantities()
     {
-        return $this->belongsToMany(Warehouse::class, 'product_warehouse', 'product_id', 'warehouse_id')
+        return $this->belongsToMany(Warehouse::class, 'pos_product_warehouse', 'product_id', 'warehouse_id')
                     ->withPivot('quantity')
                     ->withTimestamps();
     }
