@@ -19,7 +19,7 @@ class Warehouse extends Model
 
     public function products()
     {
-        return $this->belongsToMany(Products::class, 'product_warehouse', 'warehouse_id', 'product_id')->withPivot('quantity')->withTimestamps();
+        return $this->belongsToMany(Products::class, 'pos_product_warehouse', 'warehouse_id', 'product_id')->withPivot('quantity')->withTimestamps();
     }
     
 }

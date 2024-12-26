@@ -19,6 +19,7 @@ use App\Notifications\OtpNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -134,8 +135,12 @@ class UsersController extends Controller
             $user->save();
 
             $ipAddress = request()->ip();
-            $expiration = $request->remember_me ? now()->addWeeks(1) : now()->addHours(2);
-            $token = $user->createToken('authToken', ['*'], $expiration)->plainTextToken;
+            
+            // Set the expiration time
+            $expiration = $request->remember_me ? 10080 : 120; 
+            config(['sanctum.expiration' => $expiration]);
+
+            $token = $user->createToken('authToken', ['*'])->plainTextToken;
 
             $this->user_login($user, $ipAddress);
 

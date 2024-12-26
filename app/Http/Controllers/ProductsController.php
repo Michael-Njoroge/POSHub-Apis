@@ -204,6 +204,12 @@ class ProductsController extends Controller
         $warehouse_quantites = $request->input('warehouse_quantities', []);
         unset($data['warehouse_quantities']);
 
+        $productTags = $request->input('tags', []);
+        unset($data['tags']);
+
+        $productColors = $request->input('color', []);
+        unset($data['color']);
+
         $product = Products::create($data);
 
         if (!empty($mediaData)) {
@@ -217,7 +223,7 @@ class ProductsController extends Controller
 
         if (empty($warehouse_quantites)) {
             foreach ($warehouses as $warehouse) {
-                DB::table('product_warehouse')->insert([
+                DB::table('pos_product_warehouse')->insert([
                     'product_id' => $product->id,
                     'warehouse_id' => $warehouse->id,
                     'quantity' => 0,
@@ -229,7 +235,7 @@ class ProductsController extends Controller
             $added_warehouse = [];
 
             foreach ($warehouse_quantites as $warehouse_data) {
-                DB::table('product_warehouse')->insert([
+                DB::table('pos_product_warehouse')->insert([
                     'product_id' => $product->id,
                     'warehouse_id' => $warehouse_data['warehouse_id'],
                     'quantity' => $warehouse_data['quantity'],
@@ -244,7 +250,7 @@ class ProductsController extends Controller
 
             foreach ($warehouses as $warehouse) {
                 if (!in_array($warehouse->id, $added_warehouse)) {
-                    DB::table('product_warehouse')->insert([
+                    DB::table('pos_product_warehouse')->insert([
                         'product_id' => $product->id,
                         'warehouse_id' => $warehouse->id,
                         'quantity' => 0,
@@ -257,8 +263,15 @@ class ProductsController extends Controller
 
         $product->update(['quantity' => $total_quantity]);
 
-        $tags = $request->input('tags', []);
-        foreach ($tags as $tagId) {
+        // if (!empty($data['color'])) {
+        //     $product->colors()->attach($data['color']);  
+        // }
+
+        foreach($productColors as $colorId) {
+            $product->colors()->attach($colorId);
+        }
+
+        foreach ($productTags as $tagId) {
             $product->tags()->attach($tagId);
         }
 
