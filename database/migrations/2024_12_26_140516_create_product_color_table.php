@@ -21,8 +21,6 @@ return new class extends Migration
 
         Schema::table('pos_products', function (Blueprint $table) {
             $table->dropColumn('color'); 
-            $table->dropForeign(['brand']); 
-            $table->dropColumn('brand');
         });
     }
 
@@ -35,7 +33,6 @@ return new class extends Migration
 
         Schema::table('pos_products', function (Blueprint $table) {
             $table->string('color')->nullable();
-            $table->string('brand')->nullable(false)->change();
         });
     }
 };
