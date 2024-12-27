@@ -18,7 +18,7 @@ return new class extends Migration
         });
 
         Schema::table('pos_products', function (Blueprint $table) {
-            $table->foreignUuid('brand')->after('price')->constrained('pos_brands')->onDelete('cascade');
+            $table->foreignUuid('brand')->nullable()->after('price')->constrained('pos_brands')->onDelete('cascade');
         });
     }
 

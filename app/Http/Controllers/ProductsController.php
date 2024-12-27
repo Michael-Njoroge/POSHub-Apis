@@ -169,6 +169,7 @@ class ProductsController extends Controller
             'unit' => 'required|string',
             'cost' => 'required|string',
             'price' => 'required|string',
+            'brand' => 'nullable|uuid|exists:pos_brands,id',
             'book_status' => 'required|uuid|exists:pos_book_status,id',
             'category_id' => 'required|uuid|exists:pos_products_category,id',
             'alert_quantity' => 'nullable|string',
@@ -267,7 +268,7 @@ class ProductsController extends Controller
         //     $product->colors()->attach($data['color']);  
         // }
 
-        foreach($productColors as $colorId) {
+        foreach ($productColors as $colorId) {
             $product->colors()->attach($colorId);
         }
 
@@ -281,12 +282,88 @@ class ProductsController extends Controller
     }
 
     //Get all products
+    // public function get_products(Request $request)
+    // {
+    //     try {
+    //         $query = Products::with(['category', 'status', 'warehouse_quantities', 'media', 'ratings.user', 'brand']);
+
+    //         //Filtering
+    //         if ($request->has('brand')) {
+    //             $query->whereHas('brand', function ($q) use ($request) {
+    //                 $q->where('title', $request->query('brand'));
+    //             });
+    //         }
+
+    //         if ($request->has('category')) {
+    //             $query->whereHas('category', function ($q) use ($request) {
+    //                 $q->where('title', $request->query('category'));
+    //             });
+    //         }
+
+    //         if ($request->has('tag')) {
+    //             $query->whereJsonContains('tags', $request->query('tag'));
+    //         }
+
+    //         if ($request->has('color')) {
+    //             $query->whereJsonContains('color', $request->query('color'));
+    //         }
+
+    //         if ($request->has('minPrice')) {
+    //             $query->where('price', '>=', $request->query('minPrice'));
+    //         }
+
+    //         if ($request->has('maxPrice')) {
+    //             $query->where('price', '<=', $request->query('maxPrice'));
+    //         }
+
+    //         //Sorting
+    //         if ($request->has('sort')) {
+    //             $sortFields = explode(',', $request->query('sort'));
+    //             foreach ($sortFields as $sortField) {
+    //                 $direction = 'asc';
+    //                 if (substr($sortField, 0, 1) === '-') {
+    //                     $direction = 'desc';
+    //                     $sortField = substr($sortField, 1);
+    //                 }
+    //                 $query->orderBy($sortField, $direction);
+    //             }
+    //         } else {
+    //             $query->orderBy('created_at', 'desc');
+    //         }
+
+    //         //Limiting Fields
+    //         if ($request->has('fields')) {
+    //             $fields = explode(',', $request->query('fields'));
+    //             $query->select($fields);
+    //         }
+
+    //         // Pagination
+    //         $page = $request->query('page', 1);
+    //         $limit = $request->query('limit', 20);
+    //         $products = $query->paginate($limit, ['*'], 'page', $page);
+
+    //         return $this->sendResponse(ProductResource::collection($products)->response()->getData(true), 'Products retrieved successfully');
+    //     } catch (\Exception $e) {
+    //         return response()->json(['error' => $e->getMessage()], 500);
+    //     }
+    // }
+
     public function get_products(Request $request)
     {
         try {
-            $query = Products::with(['category', 'status', 'warehouse_quantities', 'media', 'ratings.user', 'brand']);
+            $query = Products::query();
 
-            //Filtering
+            // Fetch only necessary relations if required
+            $query->with(['category:id,name', 'status:id,name', 'brand:id,title']);
+
+            // Select only required fields by default
+            $defaultFields = ['id', 'name', 'price','cost','category_id', 'code', 'quantity', 'book_status', 'brand', 'created_at'];
+            $fields = $request->has('fields')
+                ? explode(',', $request->query('fields'))
+                : $defaultFields;
+
+            $query->select($fields);
+
             if ($request->has('brand')) {
                 $query->whereHas('brand', function ($q) use ($request) {
                     $q->where('title', $request->query('brand'));
@@ -299,14 +376,6 @@ class ProductsController extends Controller
                 });
             }
 
-            if ($request->has('tag')) {
-                $query->whereJsonContains('tags', $request->query('tag'));
-            }
-
-            if ($request->has('color')) {
-                $query->whereJsonContains('color', $request->query('color'));
-            }
-
             if ($request->has('minPrice')) {
                 $query->where('price', '>=', $request->query('minPrice'));
             }
@@ -315,7 +384,6 @@ class ProductsController extends Controller
                 $query->where('price', '<=', $request->query('maxPrice'));
             }
 
-            //Sorting
             if ($request->has('sort')) {
                 $sortFields = explode(',', $request->query('sort'));
                 foreach ($sortFields as $sortField) {
@@ -330,13 +398,6 @@ class ProductsController extends Controller
                 $query->orderBy('created_at', 'desc');
             }
 
-            //Limiting Fields
-            if ($request->has('fields')) {
-                $fields = explode(',', $request->query('fields'));
-                $query->select($fields);
-            }
-
-            // Pagination
             $page = $request->query('page', 1);
             $limit = $request->query('limit', 20);
             $products = $query->paginate($limit, ['*'], 'page', $page);
@@ -346,6 +407,8 @@ class ProductsController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+
 
     // Get single product
     public function get_product(Products $product)

@@ -135,6 +135,15 @@ Route::middleware(['auth:sanctum','active'])->group(function () {
         Route::delete('/{tag}', [TagController::class, 'delete_tag']);
     });
 
+     //Brands
+     Route::prefix('brands')->group(function () {
+        Route::get('/', [BrandController::class, 'get_brands']);
+        Route::post('/', [BrandController::class, 'create_brand']);
+        Route::get('/{brand}', [BrandController::class, 'get_brand']);
+        Route::put('/{brand}', [BrandController::class, 'update_brand']);
+        Route::delete('/{brand}', [BrandController::class, 'delete_brand']);
+    });
+
      //Colors
      Route::prefix('colors')->group(function () {
         Route::get('/', [ProductsController::class, 'get_colors']);
